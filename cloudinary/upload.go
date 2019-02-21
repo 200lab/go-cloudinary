@@ -245,6 +245,12 @@ func (uo *UploadOptions) GetPublicId() string {
 
 func (us *UploadService) UploadImage(ctx context.Context, file string, opts ...Opt) (ur *UploadResponse, r *Response, err error) {
 	if strings.TrimSpace(file) == "" {
+func (uo *UploadOptions) GetUploadPreset() string {
+	if uo.UploadPreset != nil {
+		return *uo.UploadPreset
+	}
+	return ""
+}
 		return nil, nil, errors.New("invalid file")
 	}
 	opt := new(UploadOptions)
