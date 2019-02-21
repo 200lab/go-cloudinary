@@ -20,7 +20,7 @@ type UploadService service
 
 type UploadRequest struct {
 	// Required fields to call upload request
-	File      string `json:"file"`
+	File string `json:"file"`
 	//Timestamp string `json:"timestamp"`
 	//UploadPreset *string `json:"upload_preset, omitempty"`
 }
@@ -103,6 +103,12 @@ type UploadResponse struct {
 }
 
 type Opt func(uo *UploadOptions)
+
+func WithUploadPreset(uploadPreset string) Opt {
+	return func(uo *UploadOptions) {
+		uo.UploadPreset = &uploadPreset
+	}
+}
 
 func WithPublicId(id string) Opt {
 	return func(uo *UploadOptions) {
@@ -318,7 +324,7 @@ func (us *UploadService) uploadFromURL(ctx context.Context, url string, request 
 	return ur, resp, nil
 }
 
-func (us *UploadService) handleUploadFromLocalPath(ctx context.Context, u string, filePath string, opts *UploadOptions ) (ur *UploadResponse, resp *Response, err error) {
+func (us *UploadService) handleUploadFromLocalPath(ctx context.Context, u string, filePath string, opts *UploadOptions) (ur *UploadResponse, resp *Response, err error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
