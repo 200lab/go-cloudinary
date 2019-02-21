@@ -10,6 +10,7 @@ import (
 	"io"
 	"mime/multipart"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -362,46 +363,25 @@ func (us *UploadService) handleUploadFromLocalPath(ctx context.Context, u string
 		return nil, nil, errors.New("the asset to upload can't be a directory")
 	}
 
+	if !opts.isUnsignedUpload {
+		timestamp := strconv.Itoa(int(time.Now().UTC().Unix()))
+		opts.Timestamp = &timestamp
+
+		ak, err := writer.CreateFormField("api_key")
+		if err != nil {
+			return ur, resp, err
+		}
+		_, err = ak.Write([]byte(us.client.apiKey))
+		if err != nil {
+			return ur, resp, err
+		}
+	}
+
 	part, err := writer.CreateFormFile("file", file.Name())
 	if err != nil {
 		return nil, nil, err
 	}
 	_, err = io.Copy(part, file)
-
-	if !opts.isUnsignedUpload {
-		timestamp := strconv.Itoa(int(time.Now().UTC().Unix()))
-		publicId := opts.GetPublicId()
-		if publicId == "" {
-			publicId = file.Name()
-		}
-
-		// Write API key
-		ak, err := writer.CreateFormField("api_key")
-		if err != nil {
-			return ur, resp, err
-		}
-		ak.Write([]byte(us.client.apiKey))
-
-		// Write timestamp
-		//timestamp := strconv.FormatInt(time.Now().Unix(), 10)
-		ts, err := writer.CreateFormField("timestamp")
-		if err != nil {
-			return ur, resp, err
-		}
-		ts.Write([]byte(timestamp))
-
-		// Write signature
-		hash := sha1.New()
-		part := fmt.Sprintf("timestamp=%s%s", timestamp, us.client.apiSecret)
-		io.WriteString(hash, part)
-		signature := fmt.Sprintf("%x", hash.Sum(nil))
-
-		si, err := writer.CreateFormField("signature")
-		if err != nil {
-			return ur, resp, err
-		}
-		si.Write([]byte(signature))
-	}
 
 	if opts != nil {
 		if err := us.buildParamsFromOptions(opts, writer); err != nil {
@@ -435,10 +415,30 @@ func (us *UploadService) uploadFromGoogleStorage(ctx context.Context, url string
 	return &UploadResponse{}, &Response{}, nil
 }
 
-func (us *UploadService) buildParamsFromOptions(opt *UploadOptions, writer *multipart.Writer) error {
+func (us *UploadService) buildParamsFromOptions(opts *UploadOptions, writer *multipart.Writer) error {
+	if !opts.isUnsignedUpload {
+		// Write timestamp
+		timestamp := *opts.Timestamp
+		ts, err := writer.CreateFormField("timestamp")
+		if err != nil {
+			return err
+		}
+		ts.Write([]byte(timestamp))
 
+		// Write signature
+		hash := sha1.New()
+		part := fmt.Sprintf("timestamp=%s%s", timestamp, us.client.apiSecret)
+		io.WriteString(hash, part)
+		signature := fmt.Sprintf("%x", hash.Sum(nil))
+
+		si, err := writer.CreateFormField("signature")
+		if err != nil {
+			return err
+		}
+		si.Write([]byte(signature))
+	}
 	var optMap map[string]interface{}
-	optByte, _ := json.Marshal(opt)
+	optByte, _ := json.Marshal(opts)
 	err := json.Unmarshal(optByte, &optMap)
 	if err != nil {
 		return err
@@ -462,4 +462,9 @@ func (us *UploadService) openFile(filePath string) (file *os.File, dir string, e
 	file, err = os.Open(dir + filePath)
 	return file, dir, err
 
+}
+
+func (us *UploadService) getFilename(filePath string) string {
+	var extension = filepath.Ext(filePath)
+	return filePath[0 : len(filePath)-len(extension)]
 }
