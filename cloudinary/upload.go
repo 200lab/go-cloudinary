@@ -291,31 +291,6 @@ func (us *UploadService) UnsignedUploadImage(ctx context.Context, filePath strin
 	return &UploadResponse{}, &Response{}, nil
 }
 
-func (us *UploadService) UploadImageOld(ctx context.Context, request *UploadRequest, opts ...Opt) (*UploadResponse, *Response, error) {
-	u := fmt.Sprintf("image/upload")
-
-	opt := new(UploadOptions)
-	for _, o := range opts {
-		o(opt)
-	}
-
-	switch {
-	case strings.HasPrefix(request.File, "/"):
-		// Upload image using local path
-		return us.uploadFromLocalPath(ctx, u, request, opt)
-	case strings.HasPrefix(request.File, "s3"):
-		// Upload image using Amazon S3
-		return us.uploadFromS3(ctx, u, request, opt)
-	case strings.HasPrefix(request.File, "gs"):
-		// Upload image using Google Storage
-		return us.uploadFromGoogleStorage(ctx, u, request, opt)
-
-	default:
-		// Upload image using HTTPS URL or HTTP
-		return us.uploadFromURL(ctx, u, request, opt)
-	}
-}
-
 func (us *UploadService) uploadFromURL(ctx context.Context, url string, request *UploadRequest, opt *UploadOptions) (*UploadResponse, *Response, error) {
 	req, err := us.client.NewRequest("POST", url, request)
 	if err != nil {
