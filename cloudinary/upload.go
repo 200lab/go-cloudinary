@@ -29,7 +29,7 @@ type UploadOptions struct {
 	Timestamp string `json:"timestamp"`
 	// Upload Preset is required for unsigned uploading and
 	// optional for signed uploading
-	UploadPreset *string `json:"upload_preset, omitempty"`
+	UploadPreset *string `json:"upload_preset,omitempty"`
 
 	// Optional fields to call upload request
 	// Naming and storage fields
