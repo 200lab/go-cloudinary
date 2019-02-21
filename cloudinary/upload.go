@@ -28,7 +28,6 @@ type UploadRequest struct {
 }
 
 type UploadOptions struct {
-	Timestamp *string `json:"timestamp,omitempty"`
 	//AccessControl           interface{} `json:"access_control,omitempty"`
 	AccessMode     *string  `json:"access_mode,omitempty"`
 	AllowedFormats *string  `json:"allowed_formats,omitempty"`
@@ -79,6 +78,7 @@ type UploadOptions struct {
 	ReturnDeleteToken *bool   `json:"return_delete_token,omitempty"`
 
 	Tags           *string `json:"tags,omitempty"`
+	Timestamp      *string `json:"timestamp,omitempty"`
 	Transformation *string `json:"transformation,omitempty"`
 	Type           *string `json:"type,omitempty"`
 
