@@ -3,6 +3,7 @@ package cloudinary
 import (
 	"bytes"
 	"context"
+	"crypto/sha1"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -26,7 +27,6 @@ type UploadRequest struct {
 }
 
 type UploadOptions struct {
-	Timestamp string `json:"timestamp"`
 	// Upload Preset is required for unsigned uploading and
 	// optional for signed uploading
 	UploadPreset *string `json:"upload_preset,omitempty"`
@@ -80,6 +80,8 @@ type UploadOptions struct {
 	Moderation        *string `json:"moderation,omitempty"`
 	Proxy             *string `json:"proxy,omitempty"`
 	ReturnDeleteToken *bool   `json:"return_delete_token,omitempty"`
+
+	isUnsignedUpload bool `json:"-"`
 }
 
 type UploadResponse struct {
@@ -258,6 +260,7 @@ func (us *UploadService) UploadImage(ctx context.Context, filePath string, opts 
 	for _, o := range opts {
 		o(opt)
 	}
+	opt.isUnsignedUpload = false
 
 	u := fmt.Sprintf("image/upload")
 
@@ -292,8 +295,8 @@ func (us *UploadService) UnsignedUploadImage(ctx context.Context, filePath strin
 	for _, o := range opts {
 		o(opt)
 	}
+	opt.isUnsignedUpload = true
 	opt.UploadPreset = &uploadPreset
-	opt.Timestamp = strconv.Itoa(int(time.Now().UTC().Unix()))
 
 	u := fmt.Sprintf("image/upload")
 
@@ -355,6 +358,41 @@ func (us *UploadService) handleUploadFromLocalPath(ctx context.Context, u string
 		return nil, nil, err
 	}
 	_, err = io.Copy(part, file)
+
+	if !opts.isUnsignedUpload {
+		timestamp := strconv.Itoa(int(time.Now().UTC().Unix()))
+		publicId := opts.GetPublicId()
+		if publicId == "" {
+			publicId = file.Name()
+		}
+
+		// Write API key
+		ak, err := writer.CreateFormField("api_key")
+		if err != nil {
+			return ur, resp, err
+		}
+		ak.Write([]byte(us.client.apiKey))
+
+		// Write timestamp
+		//timestamp := strconv.FormatInt(time.Now().Unix(), 10)
+		ts, err := writer.CreateFormField("timestamp")
+		if err != nil {
+			return ur, resp, err
+		}
+		ts.Write([]byte(timestamp))
+
+		// Write signature
+		hash := sha1.New()
+		part := fmt.Sprintf("timestamp=%s%s", timestamp, us.client.apiSecret)
+		io.WriteString(hash, part)
+		signature := fmt.Sprintf("%x", hash.Sum(nil))
+
+		si, err := writer.CreateFormField("signature")
+		if err != nil {
+			return ur, resp, err
+		}
+		si.Write([]byte(signature))
+	}
 
 	if opts != nil {
 		if err := us.buildParamsFromOptions(opts, writer); err != nil {
