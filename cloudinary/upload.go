@@ -364,9 +364,6 @@ func (us *UploadService) handleUploadFromLocalPath(ctx context.Context, u string
 	}
 
 	if !opts.isUnsignedUpload {
-		timestamp := strconv.Itoa(int(time.Now().UTC().Unix()))
-		opts.Timestamp = &timestamp
-
 		ak, err := writer.CreateFormField("api_key")
 		if err != nil {
 			return ur, resp, err
@@ -418,24 +415,17 @@ func (us *UploadService) uploadFromGoogleStorage(ctx context.Context, url string
 func (us *UploadService) buildParamsFromOptions(opts *UploadOptions, writer *multipart.Writer) error {
 	if !opts.isUnsignedUpload {
 		// Write timestamp
-		timestamp := *opts.Timestamp
+		timestamp := strconv.Itoa(int(time.Now().UTC().Unix()))
+		opts.Timestamp = &timestamp
+
 		ts, err := writer.CreateFormField("timestamp")
 		if err != nil {
 			return err
 		}
-		ts.Write([]byte(timestamp))
-
-		// Write signature
-		hash := sha1.New()
-		part := fmt.Sprintf("timestamp=%s%s", timestamp, us.client.apiSecret)
-		io.WriteString(hash, part)
-		signature := fmt.Sprintf("%x", hash.Sum(nil))
-
-		si, err := writer.CreateFormField("signature")
+		_, err = ts.Write([]byte(timestamp))
 		if err != nil {
 			return err
 		}
-		si.Write([]byte(signature))
 	}
 	var optMap map[string]interface{}
 	optByte, _ := json.Marshal(opts)
@@ -444,12 +434,30 @@ func (us *UploadService) buildParamsFromOptions(opts *UploadOptions, writer *mul
 		return err
 	}
 
+	hash := sha1.New()
+	params := make([]string, 0)
+
 	for field, val := range optMap {
 		valStr := fmt.Sprintf("%v", val)
 		err := writer.WriteField(field, valStr)
 		if err != nil {
 			return err
 		}
+
+		params = append(params, fmt.Sprintf("%s=%s", field, valStr))
+	}
+
+	hash.Write([]byte(strings.Join(params, "&") + us.client.apiSecret))
+
+	signature := fmt.Sprintf("%x", hash.Sum(nil))
+
+	si, err := writer.CreateFormField("signature")
+	if err != nil {
+		return err
+	}
+	_, err = si.Write([]byte(signature))
+	if err != nil {
+		return err
 	}
 	return nil
 }
