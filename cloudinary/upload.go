@@ -21,11 +21,12 @@ type UploadService service
 type UploadRequest struct {
 	// Required fields to call upload request
 	File      string `json:"file"`
-	Timestamp string `json:"timestamp"`
+	//Timestamp string `json:"timestamp"`
 	//UploadPreset *string `json:"upload_preset, omitempty"`
 }
 
 type UploadOptions struct {
+	Timestamp string `json:"timestamp"`
 	// Upload Preset is required for unsigned uploading and
 	// optional for signed uploading
 	UploadPreset *string `json:"upload_preset, omitempty"`
@@ -241,8 +242,8 @@ func (us *UploadService) UploadImage(ctx context.Context, file string, opts ...O
 	return ur, r, err
 }
 
-func (us *UploadService) UnsignedUploadImage(ctx context.Context, file string, uploadPreset string, opts ...Opt) (ur *UploadResponse, r *Response, err error) {
-	if strings.TrimSpace(file) == "" {
+func (us *UploadService) UnsignedUploadImage(ctx context.Context, filePath string, uploadPreset string, opts ...Opt) (ur *UploadResponse, r *Response, err error) {
+	if strings.TrimSpace(filePath) == "" {
 		return nil, nil, errors.New("invalid file")
 	}
 	if strings.TrimSpace(uploadPreset) == "" {
@@ -253,16 +254,19 @@ func (us *UploadService) UnsignedUploadImage(ctx context.Context, file string, u
 	for _, o := range opts {
 		o(opt)
 	}
-	opt.UploadPreset = uploadPreset
+	opt.UploadPreset = &uploadPreset
+	opt.Timestamp = strconv.Itoa(int(time.Now().UTC().Unix()))
+
+	u := fmt.Sprintf("image/upload")
 
 	switch {
-	case strings.HasPrefix(request.File, "/"):
+	case strings.HasPrefix(filePath, "/"):
 		// Upload image using local path
-		//return us.uploadFromLocalPath(ctx, u, request, opt)
-	case strings.HasPrefix(request.File, "s3"):
+		return us.handleUploadFromLocalPath(ctx, u, filePath, opt)
+	case strings.HasPrefix(filePath, "s3"):
 		// Upload image using Amazon S3
 		//return us.uploadFromS3(ctx, u, request, opt)
-	case strings.HasPrefix(request.File, "gs"):
+	case strings.HasPrefix(filePath, "gs"):
 		// Upload image using Google Storage
 		//return us.uploadFromGoogleStorage(ctx, u, request, opt)
 
@@ -270,6 +274,8 @@ func (us *UploadService) UnsignedUploadImage(ctx context.Context, file string, u
 		// Upload image using HTTPS URL or HTTP
 		//return us.uploadFromURL(ctx, u, request, opt)
 	}
+
+	return &UploadResponse{}, &Response{}, nil
 }
 
 func (us *UploadService) UploadImageOld(ctx context.Context, request *UploadRequest, opts ...Opt) (*UploadResponse, *Response, error) {
@@ -312,18 +318,33 @@ func (us *UploadService) uploadFromURL(ctx context.Context, url string, request 
 	return ur, resp, nil
 }
 
-func (us *UploadService) uploadFromLocalPath(ctx context.Context, url string, request *UploadRequest, opt *UploadOptions) (*UploadResponse, *Response, error) {
+func (us *UploadService) handleUploadFromLocalPath(ctx context.Context, u string, filePath string, opts *UploadOptions ) (ur *UploadResponse, resp *Response, err error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
-	if request != nil {
-		if err := us.buildParamsFromRequest(request, writer); err != nil {
-			return nil, nil, err
-		}
+	file, _, err := us.openFile(filePath)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer file.Close()
+
+	stat, err := file.Stat()
+	if err != nil {
+		return nil, nil, err
 	}
 
-	if opt != nil {
-		if err := us.buildParamsFromOption(opt, writer); err != nil {
+	if stat.IsDir() {
+		return nil, nil, errors.New("the asset to upload can't be a directory")
+	}
+
+	part, err := writer.CreateFormFile("file", file.Name())
+	if err != nil {
+		return nil, nil, err
+	}
+	_, err = io.Copy(part, file)
+
+	if opts != nil {
+		if err := us.buildParamsFromOptions(opts, writer); err != nil {
 			return nil, nil, err
 		}
 	}
@@ -332,14 +353,13 @@ func (us *UploadService) uploadFromLocalPath(ctx context.Context, url string, re
 		return nil, nil, err
 	}
 
-	req, err := us.client.NewUploadRequest(url, body, writer)
-
+	req, err := us.client.NewUploadRequest(u, body, writer)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	ur := new(UploadResponse)
-	resp, err := us.client.Do(ctx, req, ur)
+	ur = new(UploadResponse)
+	resp, err = us.client.Do(ctx, req, ur)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -355,40 +375,7 @@ func (us *UploadService) uploadFromGoogleStorage(ctx context.Context, url string
 	return &UploadResponse{}, &Response{}, nil
 }
 
-func (us *UploadService) buildParamsFromRequest(request *UploadRequest, writer *multipart.Writer) error {
-	timeStamp := strconv.Itoa(int(time.Now().UTC().Unix())) + us.client.apiSecret
-	if err := writer.WriteField("timestamp", timeStamp); err != nil {
-		return err
-	}
-
-	if err := writer.WriteField("upload_preset", request.UploadPreset); err != nil {
-		return err
-	}
-
-	file, _, err := us.openFile(request.File)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	stat, err := file.Stat()
-	if err != nil {
-		return err
-	}
-
-	if stat.IsDir() {
-		return errors.New("the asset to upload can't be a directory")
-	}
-
-	part, err := writer.CreateFormFile("file", file.Name())
-	if err != nil {
-		return err
-	}
-	_, err = io.Copy(part, file)
-	return err
-}
-
-func (us *UploadService) buildParamsFromOption(opt *UploadOptions, writer *multipart.Writer) error {
+func (us *UploadService) buildParamsFromOptions(opt *UploadOptions, writer *multipart.Writer) error {
 
 	var optMap map[string]interface{}
 	optByte, _ := json.Marshal(opt)
