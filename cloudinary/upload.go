@@ -243,19 +243,38 @@ func (uo *UploadOptions) GetPublicId() string {
 	return ""
 }
 
-func (us *UploadService) UploadImage(ctx context.Context, file string, opts ...Opt) (ur *UploadResponse, r *Response, err error) {
-	if strings.TrimSpace(file) == "" {
 func (uo *UploadOptions) GetUploadPreset() string {
 	if uo.UploadPreset != nil {
 		return *uo.UploadPreset
 	}
 	return ""
 }
+
+func (us *UploadService) UploadImage(ctx context.Context, filePath string, opts ...Opt) (ur *UploadResponse, r *Response, err error) {
+	if strings.TrimSpace(filePath) == "" {
 		return nil, nil, errors.New("invalid file")
 	}
 	opt := new(UploadOptions)
 	for _, o := range opts {
 		o(opt)
+	}
+
+	u := fmt.Sprintf("image/upload")
+
+	switch {
+	case strings.HasPrefix(filePath, "/"):
+		// Upload image using local path
+		return us.handleUploadFromLocalPath(ctx, u, filePath, opt)
+	case strings.HasPrefix(filePath, "s3"):
+		// Upload image using Amazon S3
+		//return us.uploadFromS3(ctx, u, request, opt)
+	case strings.HasPrefix(filePath, "gs"):
+		// Upload image using Google Storage
+		//return us.uploadFromGoogleStorage(ctx, u, request, opt)
+
+	default:
+		// Upload image using HTTPS URL or HTTP
+		//return us.uploadFromURL(ctx, u, request, opt)
 	}
 
 	return ur, r, err
