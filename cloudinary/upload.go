@@ -236,6 +236,13 @@ func WithExif(e bool) Opt {
 	}
 }
 
+func (uo *UploadOptions) GetPublicId() string {
+	if uo.PublicId != nil {
+		return *uo.PublicId
+	}
+	return ""
+}
+
 func (us *UploadService) UploadImage(ctx context.Context, file string, opts ...Opt) (ur *UploadResponse, r *Response, err error) {
 	if strings.TrimSpace(file) == "" {
 		return nil, nil, errors.New("invalid file")
