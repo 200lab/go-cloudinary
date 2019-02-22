@@ -114,135 +114,135 @@ type UploadResponse struct {
 	OriginalFilename string   `json:"original_filename"`
 }
 
-type Opt func(uo *UploadOptions)
+type SetUploadOpts func(uo *UploadOptions)
 
-func WithUploadPreset(uploadPreset string) Opt {
+func WithUploadPreset(uploadPreset string) SetUploadOpts {
 	return func(uo *UploadOptions) {
 		uo.UploadPreset = &uploadPreset
 	}
 }
 
-func WithPublicId(id string) Opt {
+func WithPublicId(id string) SetUploadOpts {
 	return func(uo *UploadOptions) {
 		uo.PublicId = &id
 	}
 }
 
-func WithFolder(folder string) Opt {
+func WithFolder(folder string) SetUploadOpts {
 	return func(uo *UploadOptions) {
 		uo.Folder = &folder
 	}
 }
 
-func WithUseFilename(isUseFilename bool) Opt {
+func WithUseFilename(isUseFilename bool) SetUploadOpts {
 	return func(uo *UploadOptions) {
 		uo.UseFilename = &isUseFilename
 	}
 }
 
-func WithUniqueFilename(isUniqueFilename bool) Opt {
+func WithUniqueFilename(isUniqueFilename bool) SetUploadOpts {
 	return func(uo *UploadOptions) {
 		uo.UniqueFilename = &isUniqueFilename
 	}
 }
 
-func WithResourceType(resourceType string) Opt {
+func WithResourceType(resourceType string) SetUploadOpts {
 	return func(uo *UploadOptions) {
 		uo.ResourceType = &resourceType
 	}
 }
 
-func WithType(typeStr string) Opt {
+func WithType(typeStr string) SetUploadOpts {
 	return func(uo *UploadOptions) {
 		uo.Type = &typeStr
 	}
 }
 
-func WithAccessMode(accessMode string) Opt {
+func WithAccessMode(accessMode string) SetUploadOpts {
 	return func(uo *UploadOptions) {
 		uo.AccessMode = &accessMode
 	}
 }
 
-func WithDiscardOriginalFilename(dof bool) Opt {
+func WithDiscardOriginalFilename(dof bool) SetUploadOpts {
 	return func(uo *UploadOptions) {
 		uo.DiscardOriginalFilename = &dof
 	}
 }
 
-func WithOverwrite(isOverwrite bool) Opt {
+func WithOverwrite(isOverwrite bool) SetUploadOpts {
 	return func(uo *UploadOptions) {
 		uo.Overwrite = &isOverwrite
 	}
 }
 
-func WithTags(tags string) Opt {
+func WithTags(tags string) SetUploadOpts {
 	return func(uo *UploadOptions) {
 		uo.Tags = &tags
 	}
 }
 
-func WithContext(ctx string) Opt {
+func WithContext(ctx string) SetUploadOpts {
 	return func(uo *UploadOptions) {
 		uo.Context = &ctx
 	}
 }
 
-func WithColors(hasColor bool) Opt {
+func WithColors(hasColor bool) SetUploadOpts {
 	return func(uo *UploadOptions) {
 		uo.Colors = &hasColor
 	}
 }
 
-func WithFaces(returnFaces bool) Opt {
+func WithFaces(returnFaces bool) SetUploadOpts {
 	return func(uo *UploadOptions) {
 		uo.Faces = &returnFaces
 	}
 }
 
-func WithQualityAnalysis(returnQualityAnalysis bool) Opt {
+func WithQualityAnalysis(returnQualityAnalysis bool) SetUploadOpts {
 	return func(uo *UploadOptions) {
 		uo.QualityAnalysis = &returnQualityAnalysis
 	}
 }
 
-func WithImageMetadata(returnImageMetadata bool) Opt {
+func WithImageMetadata(returnImageMetadata bool) SetUploadOpts {
 	return func(uo *UploadOptions) {
 		uo.ImageMetadata = &returnImageMetadata
 	}
 }
 
-func WithPhash(returnPhash bool) Opt {
+func WithPhash(returnPhash bool) SetUploadOpts {
 	return func(uo *UploadOptions) {
 		uo.Phash = &returnPhash
 	}
 }
 
-func WithAutoTagging(autoTagging float64) Opt {
+func WithAutoTagging(autoTagging float64) SetUploadOpts {
 	return func(uo *UploadOptions) {
 		uo.AutoTagging = &autoTagging
 	}
 }
 
-func WithCategorization(c string) Opt {
+func WithCategorization(c string) SetUploadOpts {
 	return func(uo *UploadOptions) {
 		uo.Categorization = &c
 	}
 }
 
-func WithDetection(d string) Opt {
+func WithDetection(d string) SetUploadOpts {
 	return func(uo *UploadOptions) {
 		uo.Detection = &d
 	}
 }
 
-func WithOCR(ocr string) Opt {
+func WithOCR(ocr string) SetUploadOpts {
 	return func(uo *UploadOptions) {
 		uo.OCR = &ocr
 	}
 }
 
-func WithExif(e bool) Opt {
+func WithExif(e bool) SetUploadOpts {
 	return func(uo *UploadOptions) {
 		uo.Exif = &e
 	}
@@ -271,7 +271,7 @@ func (uo *UploadOptions) GetTimestamp() string {
 
 // UploadImage handle signed uploading image to Cloudinary
 // Signed request are required `signature` parameters
-func (us *UploadService) UploadImage(ctx context.Context, filePath string, opts ...Opt) (ur *UploadResponse, r *Response, err error) {
+func (us *UploadService) UploadImage(ctx context.Context, filePath string, opts ...SetUploadOpts) (ur *UploadResponse, r *Response, err error) {
 	if strings.TrimSpace(filePath) == "" {
 		return nil, nil, errors.New("invalid file")
 	}
@@ -311,7 +311,7 @@ func (us *UploadService) UploadImage(ctx context.Context, filePath string, opts 
 // Additionally, although the `public_id` parameter can be specified,
 // the `overwrite` parameter is always set to `false` for unsigned uploads
 // to prevent overwriting existing file.
-func (us *UploadService) UnsignedUploadImage(ctx context.Context, filePath string, uploadPreset string, opts ...Opt) (ur *UploadResponse, r *Response, err error) {
+func (us *UploadService) UnsignedUploadImage(ctx context.Context, filePath string, uploadPreset string, opts ...SetUploadOpts) (ur *UploadResponse, r *Response, err error) {
 	if strings.TrimSpace(filePath) == "" {
 		return nil, nil, errors.New("invalid file")
 	}
@@ -497,7 +497,8 @@ func (us *UploadService) buildParamsFromOptions(opts *UploadOptions, writer *mul
 	}
 
 	if !opts.isUnsignedUpload {
-		hash.Write([]byte(strings.Join(params, "&") + us.client.apiSecret))
+		part := strings.Join(params, "&")
+		hash.Write([]byte(part + us.client.apiSecret))
 		signature := fmt.Sprintf("%x", hash.Sum(nil))
 
 		si, err := writer.CreateFormField("signature")
