@@ -497,7 +497,8 @@ func (us *UploadService) buildParamsFromOptions(opts *UploadOptions, writer *mul
 	}
 
 	if !opts.isUnsignedUpload {
-		hash.Write([]byte(strings.Join(params, "&") + us.client.apiSecret))
+		part := strings.Join(params, "&")
+		hash.Write([]byte(part + us.client.apiSecret))
 		signature := fmt.Sprintf("%x", hash.Sum(nil))
 
 		si, err := writer.CreateFormField("signature")
