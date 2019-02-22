@@ -27,72 +27,9 @@ type UploadRequest struct {
 	//UploadPreset *string `json:"upload_preset, omitempty"`
 }
 
-type UploadOptions struct {
-	//AccessControl           interface{} `json:"access_control,omitempty"`
-	AccessMode     *string  `json:"access_mode,omitempty"`
-	AllowedFormats *string  `json:"allowed_formats,omitempty"`
-	Async          *bool    `json:"async,omitempty"`
-	AutoTagging    *float64 `json:"auto_tagging,omitempty"`
-
-	BackgroundRemoval *string `json:"background_removal,omitempty"`
-	Backup            *bool   `json:"backup,omitempty"`
-
-	Callback          *string `json:"callback,omitempty"`
-	Categorization    *string `json:"categorization,omitempty"`
-	Colors            *bool   `json:"colors,omitempty"`
-	Context           *string `json:"context,omitempty"`
-	CustomCoordinates *string `json:"custom_coordinates,omitempty"`
-
-	Detection               *string `json:"detection,omitempty"`
-	DiscardOriginalFilename *bool   `json:"discard_original_filename,omitempty"`
-
-	Eager                *string `json:"eager,omitempty"`
-	EagerAsync           *bool   `json:"eager_async,omitempty"`
-	EagerNotificationURL *string `json:"eager_notification_url,omitempty"`
-	Exif                 *bool   `json:"exif,omitempty"`
-
-	FaceCoordinates *string `json:"face_coordinates,omitempty"`
-	Faces           *bool   `json:"faces,omitempty"`
-	Folder          *string `json:"folder,omitempty"`
-	Format          *string `json:"format,omitempty"`
-
-	Headers *string `json:"headers,omitempty"`
-
-	ImageMetadata *bool `json:"image_metadata,omitempty"`
-	Invalidate    *bool `json:"invalidate,omitempty"`
-
-	Moderation *string `json:"moderation,omitempty"`
-
-	NotificationURL *string `json:"notification_url,omitempty"`
-
-	OCR       *string `json:"ocr,omitempty"`
-	Overwrite *bool   `json:"overwrite,omitempty"`
-
-	Phash    *bool   `json:"phash,omitempty"`
-	Proxy    *string `json:"proxy,omitempty"`
-	PublicId *string `json:"public_id,omitempty"`
-
-	QualityAnalysis *bool `json:"quality_analysis,omitempty"`
-
-	RawConvert        *string `json:"raw_convert,omitempty"`
-	ReturnDeleteToken *bool   `json:"return_delete_token,omitempty"`
-
-	Tags           *string `json:"tags,omitempty"`
-	Timestamp      *string `json:"timestamp,omitempty"`
-	Transformation *string `json:"transformation,omitempty"`
-	Type           *string `json:"type,omitempty"`
-
-	UniqueFilename *bool `json:"unique_filename,omitempty"`
-	// Upload Preset is required for unsigned uploading and
-	// optional for signed uploading
-	UploadPreset *string `json:"upload_preset,omitempty"`
-	UseFilename  *bool   `json:"use_filename,omitempty"`
-
-	ResourceType *string `json:"resource_type,omitempty"`
-	//ResponsiveBreakpoints interface{} `json:"responsive_breakpoints,omitempty"`
-
-	isUnsignedUpload bool `json:"-"`
-}
+//type Options struct {
+//	isUnsignedUpload bool `json:"-"`
+//}
 
 type UploadResponse struct {
 	PublicId         string   `json:"public_id"`
@@ -114,168 +51,13 @@ type UploadResponse struct {
 	OriginalFilename string   `json:"original_filename"`
 }
 
-type SetUploadOpts func(uo *UploadOptions)
-
-func WithUploadPreset(uploadPreset string) SetUploadOpts {
-	return func(uo *UploadOptions) {
-		uo.UploadPreset = &uploadPreset
-	}
-}
-
-func WithPublicId(id string) SetUploadOpts {
-	return func(uo *UploadOptions) {
-		uo.PublicId = &id
-	}
-}
-
-func WithFolder(folder string) SetUploadOpts {
-	return func(uo *UploadOptions) {
-		uo.Folder = &folder
-	}
-}
-
-func WithUseFilename(isUseFilename bool) SetUploadOpts {
-	return func(uo *UploadOptions) {
-		uo.UseFilename = &isUseFilename
-	}
-}
-
-func WithUniqueFilename(isUniqueFilename bool) SetUploadOpts {
-	return func(uo *UploadOptions) {
-		uo.UniqueFilename = &isUniqueFilename
-	}
-}
-
-func WithResourceType(resourceType string) SetUploadOpts {
-	return func(uo *UploadOptions) {
-		uo.ResourceType = &resourceType
-	}
-}
-
-func WithType(typeStr string) SetUploadOpts {
-	return func(uo *UploadOptions) {
-		uo.Type = &typeStr
-	}
-}
-
-func WithAccessMode(accessMode string) SetUploadOpts {
-	return func(uo *UploadOptions) {
-		uo.AccessMode = &accessMode
-	}
-}
-
-func WithDiscardOriginalFilename(dof bool) SetUploadOpts {
-	return func(uo *UploadOptions) {
-		uo.DiscardOriginalFilename = &dof
-	}
-}
-
-func WithOverwrite(isOverwrite bool) SetUploadOpts {
-	return func(uo *UploadOptions) {
-		uo.Overwrite = &isOverwrite
-	}
-}
-
-func WithTags(tags string) SetUploadOpts {
-	return func(uo *UploadOptions) {
-		uo.Tags = &tags
-	}
-}
-
-func WithContext(ctx string) SetUploadOpts {
-	return func(uo *UploadOptions) {
-		uo.Context = &ctx
-	}
-}
-
-func WithColors(hasColor bool) SetUploadOpts {
-	return func(uo *UploadOptions) {
-		uo.Colors = &hasColor
-	}
-}
-
-func WithFaces(returnFaces bool) SetUploadOpts {
-	return func(uo *UploadOptions) {
-		uo.Faces = &returnFaces
-	}
-}
-
-func WithQualityAnalysis(returnQualityAnalysis bool) SetUploadOpts {
-	return func(uo *UploadOptions) {
-		uo.QualityAnalysis = &returnQualityAnalysis
-	}
-}
-
-func WithImageMetadata(returnImageMetadata bool) SetUploadOpts {
-	return func(uo *UploadOptions) {
-		uo.ImageMetadata = &returnImageMetadata
-	}
-}
-
-func WithPhash(returnPhash bool) SetUploadOpts {
-	return func(uo *UploadOptions) {
-		uo.Phash = &returnPhash
-	}
-}
-
-func WithAutoTagging(autoTagging float64) SetUploadOpts {
-	return func(uo *UploadOptions) {
-		uo.AutoTagging = &autoTagging
-	}
-}
-
-func WithCategorization(c string) SetUploadOpts {
-	return func(uo *UploadOptions) {
-		uo.Categorization = &c
-	}
-}
-
-func WithDetection(d string) SetUploadOpts {
-	return func(uo *UploadOptions) {
-		uo.Detection = &d
-	}
-}
-
-func WithOCR(ocr string) SetUploadOpts {
-	return func(uo *UploadOptions) {
-		uo.OCR = &ocr
-	}
-}
-
-func WithExif(e bool) SetUploadOpts {
-	return func(uo *UploadOptions) {
-		uo.Exif = &e
-	}
-}
-
-func (uo *UploadOptions) GetPublicId() string {
-	if uo.PublicId != nil {
-		return *uo.PublicId
-	}
-	return ""
-}
-
-func (uo *UploadOptions) GetUploadPreset() string {
-	if uo.UploadPreset != nil {
-		return *uo.UploadPreset
-	}
-	return ""
-}
-
-func (uo *UploadOptions) GetTimestamp() string {
-	if uo.Timestamp != nil {
-		return *uo.Timestamp
-	}
-	return ""
-}
-
 // UploadImage handle signed uploading image to Cloudinary
 // Signed request are required `signature` parameters
-func (us *UploadService) UploadImage(ctx context.Context, filePath string, opts ...SetUploadOpts) (ur *UploadResponse, r *Response, err error) {
+func (us *UploadService) UploadImage(ctx context.Context, filePath string, opts ...SetOpts) (ur *UploadResponse, r *Response, err error) {
 	if strings.TrimSpace(filePath) == "" {
 		return nil, nil, errors.New("invalid file")
 	}
-	opt := new(UploadOptions)
+	opt := new(Options)
 	for _, o := range opts {
 		o(opt)
 	}
@@ -311,7 +93,7 @@ func (us *UploadService) UploadImage(ctx context.Context, filePath string, opts 
 // Additionally, although the `public_id` parameter can be specified,
 // the `overwrite` parameter is always set to `false` for unsigned uploads
 // to prevent overwriting existing file.
-func (us *UploadService) UnsignedUploadImage(ctx context.Context, filePath string, uploadPreset string, opts ...SetUploadOpts) (ur *UploadResponse, r *Response, err error) {
+func (us *UploadService) UnsignedUploadImage(ctx context.Context, filePath string, uploadPreset string, opts ...SetOpts) (ur *UploadResponse, r *Response, err error) {
 	if strings.TrimSpace(filePath) == "" {
 		return nil, nil, errors.New("invalid file")
 	}
@@ -319,7 +101,7 @@ func (us *UploadService) UnsignedUploadImage(ctx context.Context, filePath strin
 		return nil, nil, errors.New("upload_preset is required for unsigned uploading")
 	}
 
-	opt := new(UploadOptions)
+	opt := new(Options)
 	for _, o := range opts {
 		o(opt)
 	}
@@ -347,7 +129,7 @@ func (us *UploadService) UnsignedUploadImage(ctx context.Context, filePath strin
 	return &UploadResponse{}, &Response{}, nil
 }
 
-func (us *UploadService) uploadFromURL(ctx context.Context, u, fileURL string, opts *UploadOptions) (ur *UploadResponse, resp *Response, err error) {
+func (us *UploadService) uploadFromURL(ctx context.Context, u, fileURL string, opts *Options) (ur *UploadResponse, resp *Response, err error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	if err := writer.WriteField("file", fileURL); err != nil {
@@ -392,7 +174,7 @@ func (us *UploadService) uploadFromURL(ctx context.Context, u, fileURL string, o
 	return ur, resp, nil
 }
 
-func (us *UploadService) handleUploadFromLocalPath(ctx context.Context, u, filePath string, opts *UploadOptions) (ur *UploadResponse, resp *Response, err error) {
+func (us *UploadService) handleUploadFromLocalPath(ctx context.Context, u, filePath string, opts *Options) (ur *UploadResponse, resp *Response, err error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
@@ -455,15 +237,15 @@ func (us *UploadService) handleUploadFromLocalPath(ctx context.Context, u, fileP
 	return ur, resp, nil
 }
 
-func (us *UploadService) uploadFromS3(ctx context.Context, url string, request *UploadRequest, opt *UploadOptions) (*UploadResponse, *Response, error) {
+func (us *UploadService) uploadFromS3(ctx context.Context, url string, request *UploadRequest, opt *Options) (*UploadResponse, *Response, error) {
 	return &UploadResponse{}, &Response{}, nil
 }
 
-func (us *UploadService) uploadFromGoogleStorage(ctx context.Context, url string, request *UploadRequest, opt *UploadOptions) (*UploadResponse, *Response, error) {
+func (us *UploadService) uploadFromGoogleStorage(ctx context.Context, url string, request *UploadRequest, opt *Options) (*UploadResponse, *Response, error) {
 	return &UploadResponse{}, &Response{}, nil
 }
 
-func (us *UploadService) buildParamsFromOptions(opts *UploadOptions, writer *multipart.Writer) error {
+func (us *UploadService) buildParamsFromOptions(opts *Options, writer *multipart.Writer) error {
 	if !opts.isUnsignedUpload {
 		// Write timestamp
 		timestamp := opts.GetTimestamp()
