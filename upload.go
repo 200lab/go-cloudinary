@@ -341,7 +341,7 @@ func (us *UploadService) UnsignedUploadImage(ctx context.Context, filePath strin
 
 	default:
 		// Upload image using HTTPS URL or HTTP
-		//return us.uploadFromURL(ctx, u, request, opt)
+		return us.uploadFromURL(ctx, u, filePath, opt)
 	}
 
 	return &UploadResponse{}, &Response{}, nil
@@ -496,16 +496,18 @@ func (us *UploadService) buildParamsFromOptions(opts *UploadOptions, writer *mul
 		params = append(params, fmt.Sprintf("%s=%s", field, valStr))
 	}
 
-	hash.Write([]byte(strings.Join(params, "&") + us.client.apiSecret))
-	signature := fmt.Sprintf("%x", hash.Sum(nil))
+	if !opts.isUnsignedUpload {
+		hash.Write([]byte(strings.Join(params, "&") + us.client.apiSecret))
+		signature := fmt.Sprintf("%x", hash.Sum(nil))
 
-	si, err := writer.CreateFormField("signature")
-	if err != nil {
-		return err
-	}
-	_, err = si.Write([]byte(signature))
-	if err != nil {
-		return err
+		si, err := writer.CreateFormField("signature")
+		if err != nil {
+			return err
+		}
+		_, err = si.Write([]byte(signature))
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
