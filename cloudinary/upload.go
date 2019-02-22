@@ -269,6 +269,8 @@ func (uo *UploadOptions) GetTimestamp() string {
 	return ""
 }
 
+// UploadImage handle signed uploading image to Cloudinary
+// Signed request are required `signature` parameters
 func (us *UploadService) UploadImage(ctx context.Context, filePath string, opts ...Opt) (ur *UploadResponse, r *Response, err error) {
 	if strings.TrimSpace(filePath) == "" {
 		return nil, nil, errors.New("invalid file")
