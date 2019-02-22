@@ -300,6 +300,15 @@ func (us *UploadService) UploadImage(ctx context.Context, filePath string, opts 
 	return ur, r, err
 }
 
+// UnsignedUploadImage handle unsigned uploading image to Cloudinary.
+// Unsigned request are restricted to the following allowed parameters:
+// `public_id`, `folder`, `callback`, `tags`, `context`,
+// `face_coordinates` (image-only), `custom_coordinates` (image-only) and `upload_preset`.
+// Most of the other upload parameters can be defined in your `upload_preset`.
+//
+// Additionally, although the `public_id` parameter can be specified,
+// the `overwrite` parameter is always set to `false` for unsigned uploads
+// to prevent overwriting existing file.
 func (us *UploadService) UnsignedUploadImage(ctx context.Context, filePath string, uploadPreset string, opts ...Opt) (ur *UploadResponse, r *Response, err error) {
 	if strings.TrimSpace(filePath) == "" {
 		return nil, nil, errors.New("invalid file")
