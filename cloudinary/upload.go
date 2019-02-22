@@ -262,6 +262,13 @@ func (uo *UploadOptions) GetUploadPreset() string {
 	return ""
 }
 
+func (uo *UploadOptions) GetTimestamp() string {
+	if uo.Timestamp != nil {
+		return *uo.Timestamp
+	}
+	return ""
+}
+
 func (us *UploadService) UploadImage(ctx context.Context, filePath string, opts ...Opt) (ur *UploadResponse, r *Response, err error) {
 	if strings.TrimSpace(filePath) == "" {
 		return nil, nil, errors.New("invalid file")
@@ -364,6 +371,9 @@ func (us *UploadService) handleUploadFromLocalPath(ctx context.Context, u string
 	}
 
 	if !opts.isUnsignedUpload {
+		timestamp := strconv.Itoa(int(time.Now().UTC().Unix()))
+		opts.Timestamp = &timestamp
+
 		ak, err := writer.CreateFormField("api_key")
 		if err != nil {
 			return ur, resp, err
@@ -415,9 +425,7 @@ func (us *UploadService) uploadFromGoogleStorage(ctx context.Context, url string
 func (us *UploadService) buildParamsFromOptions(opts *UploadOptions, writer *multipart.Writer) error {
 	if !opts.isUnsignedUpload {
 		// Write timestamp
-		timestamp := strconv.Itoa(int(time.Now().UTC().Unix()))
-		opts.Timestamp = &timestamp
-
+		timestamp := opts.GetTimestamp()
 		ts, err := writer.CreateFormField("timestamp")
 		if err != nil {
 			return err
@@ -448,7 +456,6 @@ func (us *UploadService) buildParamsFromOptions(opts *UploadOptions, writer *mul
 	}
 
 	hash.Write([]byte(strings.Join(params, "&") + us.client.apiSecret))
-
 	signature := fmt.Sprintf("%x", hash.Sum(nil))
 
 	si, err := writer.CreateFormField("signature")
