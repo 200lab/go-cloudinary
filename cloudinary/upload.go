@@ -294,7 +294,7 @@ func (us *UploadService) UploadImage(ctx context.Context, filePath string, opts 
 
 	default:
 		// Upload image using HTTPS URL or HTTP
-		//return us.uploadFromURL(ctx, u, request, opt)
+		return us.uploadFromURL(ctx, u, filePath, opt)
 	}
 
 	return ur, r, err
@@ -336,14 +336,44 @@ func (us *UploadService) UnsignedUploadImage(ctx context.Context, filePath strin
 	return &UploadResponse{}, &Response{}, nil
 }
 
-func (us *UploadService) uploadFromURL(ctx context.Context, url string, request *UploadRequest, opt *UploadOptions) (*UploadResponse, *Response, error) {
-	req, err := us.client.NewRequest("POST", url, request)
+func (us *UploadService) uploadFromURL(ctx context.Context, u, fileURL string, opts *UploadOptions) (ur *UploadResponse, resp *Response, err error) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	if err := writer.WriteField("file", fileURL); err != nil {
+		return ur, resp, err
+	}
+
+	if !opts.isUnsignedUpload {
+		timestamp := strconv.Itoa(int(time.Now().UTC().Unix()))
+		opts.Timestamp = &timestamp
+
+		ak, err := writer.CreateFormField("api_key")
+		if err != nil {
+			return ur, resp, err
+		}
+		_, err = ak.Write([]byte(us.client.apiKey))
+		if err != nil {
+			return ur, resp, err
+		}
+	}
+
+	if opts != nil {
+		if err := us.buildParamsFromOptions(opts, writer); err != nil {
+			return ur, resp, err
+		}
+	}
+
+	if err := writer.Close(); err != nil {
+		return nil, nil, err
+	}
+
+	req, err := us.client.NewUploadRequest(u, body, writer)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	ur := new(UploadResponse)
-	resp, err := us.client.Do(ctx, req, ur)
+	ur = new(UploadResponse)
+	resp, err = us.client.Do(ctx, req, ur)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -351,7 +381,7 @@ func (us *UploadService) uploadFromURL(ctx context.Context, url string, request 
 	return ur, resp, nil
 }
 
-func (us *UploadService) handleUploadFromLocalPath(ctx context.Context, u string, filePath string, opts *UploadOptions) (ur *UploadResponse, resp *Response, err error) {
+func (us *UploadService) handleUploadFromLocalPath(ctx context.Context, u, filePath string, opts *UploadOptions) (ur *UploadResponse, resp *Response, err error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
