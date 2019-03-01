@@ -220,6 +220,12 @@ func (uo *Options) GetTimestamp() string {
 	return ""
 }
 
+func (uo *Options) GetResourceType() string {
+	if uo.ResourceType != nil {
+		return *uo.ResourceType
+	}
+	return ""
+}
 func WithResourceType(resourceType string) SetOpts {
 	return func(opts *Options) {
 		opts.ResourceType = &resourceType
