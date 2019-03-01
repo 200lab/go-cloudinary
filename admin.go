@@ -19,7 +19,7 @@ type SetAdminOpts func(ao *AdminOptions)
 // DeleteResource deletes all resources with the given publicIds
 // publicIds is a array that store up to 100 ids
 
-///resources/:resource_type/:type
+// Documentation: https://cloudinary.com/documentation/admin_api#delete_all_or_selected_resources
 func (as *AdminService) DeleteResources(ctx context.Context, publicIds []string, opts ...SetOpts) (ar *AdminResponse, resp *Response, err error) {
 	o := new(Options)
 	for _, setOptions := range opts {
