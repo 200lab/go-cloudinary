@@ -233,12 +233,14 @@ func (uo *Options) GetType() string {
 	}
 	return ""
 }
+
 func (uo *Options) GetKeepOriginal() bool {
 	if uo.KeepOriginal != nil {
 		return *uo.KeepOriginal
 	}
 	return false
 }
+
 func WithResourceType(resourceType string) SetOpts {
 	return func(opts *Options) {
 		opts.ResourceType = &resourceType
