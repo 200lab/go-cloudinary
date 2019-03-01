@@ -7,14 +7,28 @@ import (
 
 type AdminService service
 
-type AdminOptions struct{}
+type deleteResourcesOptions struct {
+	KeepOriginal bool   `json:"keep_original"`
+	Invalidate   bool   `json:"invalidate"`
+	NextCursor   string `json:"next_cursor"`
+}
+
+func (dro *deleteResourcesOptions) SetKeepOriginal(ko bool) {
+	dro.KeepOriginal = ko
+}
+
+func (dro *deleteResourcesOptions) SetInvalidate(i bool) {
+	dro.Invalidate = i
+}
+
+func (dro *deleteResourcesOptions) SetNextCursor(nc string) {
+	dro.NextCursor = nc
+}
 
 type AdminResponse struct {
 	Deleted interface{} `json:"deleted"`
 	Partial bool        `json:"partial"`
 }
-
-type SetAdminOpts func(ao *AdminOptions)
 
 // DeleteResource deletes all resources with the given publicIds
 // publicIds is a array that store up to 100 ids
@@ -54,7 +68,7 @@ func (as *AdminService) DeleteResourcesByPrefix(prefix string, opts ...SetOpts) 
 	return &AdminResponse{}, &Response{}, nil
 }
 
-func (as *AdminService) DeleteAllResources(opts ...SetAdminOpts) (ar *AdminResponse, resp *Response, err error) {
+func (as *AdminService) DeleteAllResources(opts ...SetOpts) (ar *AdminResponse, resp *Response, err error) {
 	return &AdminResponse{}, &Response{}, nil
 }
 
