@@ -226,6 +226,13 @@ func (uo *Options) GetResourceType() string {
 	}
 	return ""
 }
+
+func (uo *Options) GetType() string {
+	if uo.Type != nil {
+		return *uo.Type
+	}
+	return ""
+}
 func WithResourceType(resourceType string) SetOpts {
 	return func(opts *Options) {
 		opts.ResourceType = &resourceType
