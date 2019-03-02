@@ -95,8 +95,25 @@ func (as *AdminService) DeleteResources(ctx context.Context, publicIds []string,
 
 func (as *AdminService) DeleteResourcesByPrefix(ctx context.Context, prefix string, opts ...SetOpts) (ar *AdminResponse, resp *Response, err error) {
 	o := new(Options)
+	params := make(map[string]string)
+
 	for _, setOptions := range opts {
 		setOptions(o)
+	}
+
+	keepOriginal := o.GetKeepOriginal()
+	if keepOriginal {
+		params["keep_original"] = strconv.FormatBool(keepOriginal)
+	}
+
+	invalidate := o.GetInvalidate()
+	if invalidate {
+		params["invalidate"] = strconv.FormatBool(invalidate)
+	}
+
+	nextCursor := o.GetNextCursor()
+	if nextCursor != "" {
+		params["next_cursor"] = nextCursor
 	}
 
 	resourceType := o.GetResourceType()
