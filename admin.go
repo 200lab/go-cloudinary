@@ -40,7 +40,7 @@ func (ar *AdminResponse) ToJSON() string {
 
 // DeleteResource deletes all resources with the given publicIds
 // publicIds is a array that store up to 100 ids
-
+//
 // Documentation: https://cloudinary.com/documentation/admin_api#delete_all_or_selected_resources
 func (as *AdminService) DeleteResources(ctx context.Context, publicIds []string, opts ...SetOpts) (ar *AdminResponse, resp *Response, err error) {
 	o := new(Options)
@@ -96,6 +96,7 @@ func (as *AdminService) DeleteDerivedResourcesByTransformation(publicId, transfo
 	return &AdminResponse{}, &Response{}, nil
 }
 
+// buildURLStrWithParams is return url string that contain query string with the given parameters
 func (as *AdminService) buildURLStrWithParams(u string, params map[string]string) string {
 	urlObject, _ := url.Parse(u)
 	q := urlObject.Query()
@@ -108,6 +109,12 @@ func (as *AdminService) buildURLStrWithParams(u string, params map[string]string
 	return urlObject.String()
 }
 
+// Cloudinary Admin API use Basic Authentication over secure HTTP.
+// API_KEY and API_SECRET are used for the authentication
+//
+// Read more about Basic Authentication at link below:
+// https://swagger.io/docs/specification/authentication/basic-authentication/
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication
 func (as *AdminService) withBasicAuthentication(request *http.Request) {
 	encodedStr := getBase64EncodedString(as.client.apiKey, as.client.apiSecret)
 	request.Header.Set("Authorization", "Basic "+encodedStr)
