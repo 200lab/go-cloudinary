@@ -83,3 +83,7 @@ func (as *AdminService) DeleteDerivedResources(derivedResourceIds string, opts .
 func (as *AdminService) DeleteDerivedResourcesByTransformation(publicId, transformation []string, opts ...SetOpts) (ar *AdminResponse, resp *Response, err error) {
 	return &AdminResponse{}, &Response{}, nil
 }
+func (as *AdminService) withBasicAuthentication(request *http.Request) {
+	encodedStr := getBase64EncodedString(as.client.apiKey, as.client.apiSecret)
+	request.Header.Set("Authorization", "Basic "+encodedStr)
+}
