@@ -251,6 +251,12 @@ func (o *Options) GetKeepOriginal() bool {
 	return false
 }
 
+func (o *Options) GetInvalidate() bool {
+	if o.Invalidate != nil {
+		return *o.Invalidate
+	}
+	return false
+}
 func WithResourceType(resourceType string) SetOpts {
 	return func(opts *Options) {
 		opts.ResourceType = &resourceType
