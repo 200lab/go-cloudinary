@@ -76,8 +76,32 @@ func (as *AdminService) DeleteResources(ctx context.Context, publicIds []string,
 	return ar, resp, err
 }
 
-func (as *AdminService) DeleteResourcesByPrefix(prefix string, opts ...SetOpts) (ar *AdminResponse, resp *Response, err error) {
-	return &AdminResponse{}, &Response{}, nil
+func (as *AdminService) DeleteResourcesByPrefix(ctx context.Context, prefix string, opts ...SetOpts) (ar *AdminResponse, resp *Response, err error) {
+	o := new(Options)
+	for _, setOptions := range opts {
+		setOptions(o)
+	}
+
+	resourceType := o.GetResourceType()
+	if resourceType == "" {
+		resourceType = "image"
+	}
+	storageType := o.GetType()
+	if storageType == "" {
+		storageType = "upload"
+	}
+
+	u := fmt.Sprintf("resources/%s/%s?prefix=%s", resourceType, storageType, prefix)
+
+	request, err := as.client.NewRequest("DELETE", u, o)
+	if err != nil {
+		return &AdminResponse{}, &Response{}, err
+	}
+	as.withBasicAuthentication(request)
+
+	ar = new(AdminResponse)
+	resp, err = as.client.Do(ctx, request, ar)
+	return ar, resp, err
 }
 
 func (as *AdminService) DeleteAllResources(opts ...SetOpts) (ar *AdminResponse, resp *Response, err error) {
