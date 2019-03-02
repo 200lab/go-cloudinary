@@ -2,7 +2,10 @@ package cloudinary
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/url"
 )
 
 type AdminService service
@@ -30,6 +33,11 @@ type AdminResponse struct {
 	Partial bool        `json:"partial"`
 }
 
+func (ar *AdminResponse) ToJSON() string {
+	b, _ := json.Marshal(ar)
+	return string(b)
+}
+
 // DeleteResource deletes all resources with the given publicIds
 // publicIds is a array that store up to 100 ids
 
@@ -49,17 +57,21 @@ func (as *AdminService) DeleteResources(ctx context.Context, publicIds []string,
 		storageType = "upload"
 	}
 
-	u := fmt.Sprintf("/resources/%s/%s", resourceType, storageType)
-
-	request, err := as.client.NewRequest("DELETE", u, nil)
-	for _, publicId := range publicIds {
-		request.URL.Query().Add("public_ids[]", publicId)
-		request.URL.Query().Set("public_ids[]", publicId)
+	u := fmt.Sprintf("resources/%s/%s", resourceType, storageType)
+	params := make(map[string]string)
+	for _, pId := range publicIds {
+		params["public_ids[]"] = pId
 	}
+
+	u = as.buildURLStrWithParams(u, params)
+
+	request, err := as.client.NewRequest("DELETE", u, o)
 	if err != nil {
 		return &AdminResponse{}, &Response{}, err
 	}
+	as.withBasicAuthentication(request)
 
+	ar = new(AdminResponse)
 	resp, err = as.client.Do(ctx, request, ar)
 	return ar, resp, err
 }
@@ -83,6 +95,7 @@ func (as *AdminService) DeleteDerivedResources(derivedResourceIds string, opts .
 func (as *AdminService) DeleteDerivedResourcesByTransformation(publicId, transformation []string, opts ...SetOpts) (ar *AdminResponse, resp *Response, err error) {
 	return &AdminResponse{}, &Response{}, nil
 }
+
 func (as *AdminService) buildURLStrWithParams(u string, params map[string]string) string {
 	urlObject, _ := url.Parse(u)
 	q := urlObject.Query()
@@ -94,6 +107,7 @@ func (as *AdminService) buildURLStrWithParams(u string, params map[string]string
 	urlObject.RawQuery = q.Encode()
 	return urlObject.String()
 }
+
 func (as *AdminService) withBasicAuthentication(request *http.Request) {
 	encodedStr := getBase64EncodedString(as.client.apiKey, as.client.apiSecret)
 	request.Header.Set("Authorization", "Basic "+encodedStr)
