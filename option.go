@@ -257,6 +257,12 @@ func (o *Options) GetInvalidate() bool {
 	}
 	return false
 }
+func (o *Options) GetNextCursor() string {
+	if o.NextCursor != nil {
+		return *o.NextCursor
+	}
+	return ""
+}
 func WithResourceType(resourceType string) SetOpts {
 	return func(opts *Options) {
 		opts.ResourceType = &resourceType
