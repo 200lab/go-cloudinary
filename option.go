@@ -1,5 +1,9 @@
 package cloudinary
 
+import (
+	"encoding/json"
+)
+
 type ResourceType string
 
 type Options struct {
@@ -74,169 +78,175 @@ type Options struct {
 type SetOpts func(opts *Options)
 
 func WithUploadPreset(uploadPreset string) SetOpts {
-	return func(uo *Options) {
-		uo.UploadPreset = &uploadPreset
+	return func(o *Options) {
+		o.UploadPreset = &uploadPreset
 	}
 }
 
 func WithPublicId(id string) SetOpts {
-	return func(uo *Options) {
-		uo.PublicId = &id
+	return func(o *Options) {
+		o.PublicId = &id
 	}
 }
 
 func WithFolder(folder string) SetOpts {
-	return func(uo *Options) {
-		uo.Folder = &folder
+	return func(o *Options) {
+		o.Folder = &folder
 	}
 }
 
 func WithUseFilename(isUseFilename bool) SetOpts {
-	return func(uo *Options) {
-		uo.UseFilename = &isUseFilename
+	return func(o *Options) {
+		o.UseFilename = &isUseFilename
 	}
 }
 
 func WithUniqueFilename(isUniqueFilename bool) SetOpts {
-	return func(uo *Options) {
-		uo.UniqueFilename = &isUniqueFilename
+	return func(o *Options) {
+		o.UniqueFilename = &isUniqueFilename
 	}
 }
 
 func WithType(typeStr string) SetOpts {
-	return func(uo *Options) {
-		uo.Type = &typeStr
+	return func(o *Options) {
+		o.Type = &typeStr
 	}
 }
 
 func WithAccessMode(accessMode string) SetOpts {
-	return func(uo *Options) {
-		uo.AccessMode = &accessMode
+	return func(o *Options) {
+		o.AccessMode = &accessMode
 	}
 }
 
 func WithDiscardOriginalFilename(dof bool) SetOpts {
-	return func(uo *Options) {
-		uo.DiscardOriginalFilename = &dof
+	return func(o *Options) {
+		o.DiscardOriginalFilename = &dof
 	}
 }
 
 func WithOverwrite(isOverwrite bool) SetOpts {
-	return func(uo *Options) {
-		uo.Overwrite = &isOverwrite
+	return func(o *Options) {
+		o.Overwrite = &isOverwrite
 	}
 }
 
 func WithTags(tags string) SetOpts {
-	return func(uo *Options) {
-		uo.Tags = &tags
+	return func(o *Options) {
+		o.Tags = &tags
 	}
 }
 
 func WithContext(ctx string) SetOpts {
-	return func(uo *Options) {
-		uo.Context = &ctx
+	return func(o *Options) {
+		o.Context = &ctx
 	}
 }
 
 func WithColors(hasColor bool) SetOpts {
-	return func(uo *Options) {
-		uo.Colors = &hasColor
+	return func(o *Options) {
+		o.Colors = &hasColor
 	}
 }
 
 func WithFaces(returnFaces bool) SetOpts {
-	return func(uo *Options) {
-		uo.Faces = &returnFaces
+	return func(o *Options) {
+		o.Faces = &returnFaces
 	}
 }
 
 func WithQualityAnalysis(returnQualityAnalysis bool) SetOpts {
-	return func(uo *Options) {
-		uo.QualityAnalysis = &returnQualityAnalysis
+	return func(o *Options) {
+		o.QualityAnalysis = &returnQualityAnalysis
 	}
 }
 
 func WithImageMetadata(returnImageMetadata bool) SetOpts {
-	return func(uo *Options) {
-		uo.ImageMetadata = &returnImageMetadata
+	return func(o *Options) {
+		o.ImageMetadata = &returnImageMetadata
 	}
 }
 
 func WithPhash(returnPhash bool) SetOpts {
-	return func(uo *Options) {
-		uo.Phash = &returnPhash
+	return func(o *Options) {
+		o.Phash = &returnPhash
 	}
 }
 
 func WithAutoTagging(autoTagging float64) SetOpts {
-	return func(uo *Options) {
-		uo.AutoTagging = &autoTagging
+	return func(o *Options) {
+		o.AutoTagging = &autoTagging
 	}
 }
 
 func WithCategorization(c string) SetOpts {
-	return func(uo *Options) {
-		uo.Categorization = &c
+	return func(o *Options) {
+		o.Categorization = &c
 	}
 }
 
 func WithDetection(d string) SetOpts {
-	return func(uo *Options) {
-		uo.Detection = &d
+	return func(o *Options) {
+		o.Detection = &d
 	}
 }
 
 func WithOCR(ocr string) SetOpts {
-	return func(uo *Options) {
-		uo.OCR = &ocr
+	return func(o *Options) {
+		o.OCR = &ocr
 	}
 }
 
 func WithExif(e bool) SetOpts {
-	return func(uo *Options) {
-		uo.Exif = &e
+	return func(o *Options) {
+		o.Exif = &e
 	}
 }
 
-func (uo *Options) GetPublicId() string {
-	if uo.PublicId != nil {
-		return *uo.PublicId
+func WithKeepOriginal(ko bool) SetOpts {
+	return func(o *Options) {
+		o.KeepOriginal = &ko
 	}
-	return ""
 }
 
-func (uo *Options) GetUploadPreset() string {
-	if uo.UploadPreset != nil {
-		return *uo.UploadPreset
-	}
-	return ""
-}
-
-func (uo *Options) GetTimestamp() string {
-	if uo.Timestamp != nil {
-		return *uo.Timestamp
+func (o *Options) GetPublicId() string {
+	if o.PublicId != nil {
+		return *o.PublicId
 	}
 	return ""
 }
 
-func (uo *Options) GetResourceType() string {
-	if uo.ResourceType != nil {
-		return *uo.ResourceType
+func (o *Options) GetUploadPreset() string {
+	if o.UploadPreset != nil {
+		return *o.UploadPreset
 	}
 	return ""
 }
 
-func (uo *Options) GetType() string {
-	if uo.Type != nil {
-		return *uo.Type
+func (o *Options) GetTimestamp() string {
+	if o.Timestamp != nil {
+		return *o.Timestamp
 	}
 	return ""
 }
 
-func (uo *Options) GetKeepOriginal() bool {
-	if uo.KeepOriginal != nil {
-		return *uo.KeepOriginal
+func (o *Options) GetResourceType() string {
+	if o.ResourceType != nil {
+		return *o.ResourceType
+	}
+	return ""
+}
+
+func (o *Options) GetType() string {
+	if o.Type != nil {
+		return *o.Type
+	}
+	return ""
+}
+
+func (o *Options) GetKeepOriginal() bool {
+	if o.KeepOriginal != nil {
+		return *o.KeepOriginal
 	}
 	return false
 }
@@ -245,4 +255,9 @@ func WithResourceType(resourceType string) SetOpts {
 	return func(opts *Options) {
 		opts.ResourceType = &resourceType
 	}
+}
+
+func (o *Options) toJSON() string {
+	b, _ := json.Marshal(o)
+	return string(b)
 }
