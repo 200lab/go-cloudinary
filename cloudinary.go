@@ -6,13 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/google/go-querystring/query"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/url"
-	"reflect"
 	"strings"
 )
 
@@ -35,6 +33,7 @@ type Client struct {
 
 	// Services used for talking to different parts of the Cloudinary API
 	Upload *UploadService
+	Admin  *AdminService
 }
 
 type service struct {
@@ -76,6 +75,7 @@ func NewClient(httpClient *http.Client, uri string) (*Client, error) {
 	}
 	c.common.client = c
 	c.Upload = (*UploadService)(&c.common)
+	c.Admin = (*AdminService)(&c.common)
 
 	return c, nil
 }
@@ -89,7 +89,8 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 	if !strings.HasSuffix(c.BaseURL.Path, "/") {
 		return nil, fmt.Errorf("BaseURL must have a trailing slash, but %q does not", c.BaseURL)
 	}
-	u, err := c.BaseURL.Parse(urlStr)
+	u, err := url.Parse(c.BaseURL.String() + urlStr)
+
 	if err != nil {
 		return nil, err
 	}
@@ -113,10 +114,7 @@ func (c *Client) NewRequest(method, urlStr string, body interface{}) (*http.Requ
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
-	//req.Header.Set("Accept", mediaTypeV3)
-	//if c.UserAgent != "" {
-	//	req.Header.Set("User-Agent", c.UserAgent)
-	//}
+
 	return req, nil
 }
 
@@ -259,26 +257,4 @@ func CheckResponse(r *http.Response) error {
 	default:
 		return errorResponse
 	}
-}
-
-// addOptions adds the parameters in opt as URL query parameters to s. opt
-// must be a struct whose fields may contain "url" tags.
-func addOptions(s string, opt interface{}) (string, error) {
-	v := reflect.ValueOf(opt)
-	if v.Kind() == reflect.Ptr && v.IsNil() {
-		return s, nil
-	}
-
-	u, err := url.Parse(s)
-	if err != nil {
-		return s, err
-	}
-
-	qs, err := query.Values(opt)
-	if err != nil {
-		return s, err
-	}
-
-	u.RawQuery = qs.Encode()
-	return u.String(), nil
 }
