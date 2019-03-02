@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 )
 
 type AdminService service
@@ -44,8 +45,16 @@ func (ar *AdminResponse) ToJSON() string {
 // Documentation: https://cloudinary.com/documentation/admin_api#delete_all_or_selected_resources
 func (as *AdminService) DeleteResources(ctx context.Context, publicIds []string, opts ...SetOpts) (ar *AdminResponse, resp *Response, err error) {
 	o := new(Options)
+	params := make(map[string]string)
 	for _, setOptions := range opts {
 		setOptions(o)
+	}
+	keepOriginal := o.GetKeepOriginal()
+	if keepOriginal {
+		params["keep_original"] = strconv.FormatBool(keepOriginal)
+	}
+	for _, pId := range publicIds {
+		params["public_ids[]"] = pId
 	}
 
 	resourceType := o.GetResourceType()
@@ -58,11 +67,6 @@ func (as *AdminService) DeleteResources(ctx context.Context, publicIds []string,
 	}
 
 	u := fmt.Sprintf("resources/%s/%s", resourceType, storageType)
-	params := make(map[string]string)
-	for _, pId := range publicIds {
-		params["public_ids[]"] = pId
-	}
-
 	u = as.buildURLStrWithParams(u, params)
 
 	request, err := as.client.NewRequest("DELETE", u, o)
