@@ -3,6 +3,7 @@ package cloudinary
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -127,8 +128,49 @@ func (as *AdminService) DeleteAllResources(opts ...SetOpts) (ar *AdminResponse, 
 	return &AdminResponse{}, &Response{}, nil
 }
 
-func (as *AdminService) DeleteResourcesByTag(tag string, opts ...SetOpts) (ar *AdminResponse, resp *Response, err error) {
-	return &AdminResponse{}, &Response{}, nil
+// DeleteResourcesByTag deletes all resources and their derivatives
+// with the given tag name, up to a maximum of 1000 original resources
+func (as *AdminService) DeleteResourcesByTag(ctx context.Context, tag string, opts ...SetOpts) (ar *AdminResponse, resp *Response, err error) {
+	if tag == "" {
+		return &AdminResponse{}, &Response{}, errors.New("invalid parameter")
+	}
+
+	o := new(Options)
+	params := make(map[string]string)
+	for _, setOpt := range opts {
+		setOpt(o)
+	}
+
+	keepOriginal := o.GetKeepOriginal()
+	if keepOriginal {
+		params["keep_original"] = strconv.FormatBool(keepOriginal)
+	}
+	invalidate := o.GetInvalidate()
+	if invalidate {
+		params["invalidate"] = strconv.FormatBool(invalidate)
+	}
+	nextCursor := o.GetNextCursor()
+	if nextCursor != "" {
+		params["next_cursor"] = nextCursor
+	}
+
+	resourceType := o.GetResourceType()
+	if resourceType == "" {
+		resourceType = "image"
+	}
+
+	u := fmt.Sprintf("resources/%s/tags/%s", resourceType, tag)
+	u = as.buildURLStrWithParams(u, params)
+
+	request, err := as.client.NewRequest("DELETE", u, o)
+	if err != nil {
+		return &AdminResponse{}, &Response{}, err
+	}
+	as.withBasicAuthentication(request)
+
+	ar = new(AdminResponse)
+	resp, err = as.client.Do(ctx, request, ar)
+	return ar, resp, err
 }
 
 func (as *AdminService) DeleteDerivedResources(derivedResourceIds string, opts ...SetOpts) (ar *AdminResponse, resp *Response, err error) {
