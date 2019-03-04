@@ -11,24 +11,6 @@ import (
 
 type AdminService service
 
-type deleteResourcesOptions struct {
-	KeepOriginal bool   `json:"keep_original"`
-	Invalidate   bool   `json:"invalidate"`
-	NextCursor   string `json:"next_cursor"`
-}
-
-func (dro *deleteResourcesOptions) SetKeepOriginal(ko bool) {
-	dro.KeepOriginal = ko
-}
-
-func (dro *deleteResourcesOptions) SetInvalidate(i bool) {
-	dro.Invalidate = i
-}
-
-func (dro *deleteResourcesOptions) SetNextCursor(nc string) {
-	dro.NextCursor = nc
-}
-
 type AdminResponse struct {
 	Deleted interface{} `json:"deleted"`
 	Partial bool        `json:"partial"`
@@ -93,6 +75,9 @@ func (as *AdminService) DeleteResources(ctx context.Context, publicIds []string,
 	return ar, resp, err
 }
 
+// DeleteResource deletes all resources, including derived resources,
+// where the publicId starts with the given prefix
+// (up to maximum of 1000 original resources)
 func (as *AdminService) DeleteResourcesByPrefix(ctx context.Context, prefix string, opts ...SetOpts) (ar *AdminResponse, resp *Response, err error) {
 	o := new(Options)
 	params := make(map[string]string)
