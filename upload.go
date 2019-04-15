@@ -66,19 +66,18 @@ func (us *UploadService) UploadImage(ctx context.Context, filePath string, opts 
 	u := fmt.Sprintf("image/upload")
 
 	switch {
-	case strings.HasPrefix(filePath, "/"):
-		// Upload image using local path
-		return us.handleUploadFromLocalPath(ctx, u, filePath, opt)
-	case strings.HasPrefix(filePath, "s3"):
+	case strings.Contains(filePath, "://"):
+		// Upload image using HTTPS URL or HTTP
+		return us.uploadFromURL(ctx, u, filePath, opt)
+	case strings.Contains(filePath, "s3"):
 		// Upload image using Amazon S3
 		//return us.uploadFromS3(ctx, u, request, opt)
-	case strings.HasPrefix(filePath, "gs"):
+	case strings.Contains(filePath, "gs"):
 		// Upload image using Google Storage
 		//return us.uploadFromGoogleStorage(ctx, u, request, opt)
 
 	default:
-		// Upload image using HTTPS URL or HTTP
-		return us.uploadFromURL(ctx, u, filePath, opt)
+		return us.handleUploadFromLocalPath(ctx, u, filePath, opt)
 	}
 
 	return ur, r, err
