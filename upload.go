@@ -11,7 +11,7 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
-	"strconv"
+	"sort"
 	"strings"
 	"time"
 )
@@ -32,23 +32,24 @@ type UploadRequest struct {
 //}
 
 type UploadResponse struct {
-	PublicId         string   `json:"public_id"`
-	Version          int64    `json:"version"`
-	Signature        string   `json:"signature"`
-	Width            int64    `json:"width"`
-	Height           int64    `json:"height"`
-	Format           string   `json:"format"`
-	ResourceType     string   `json:"resource_type"`
-	CreatedAt        string   `json:"created_at"`
-	Tags             []string `json:"tags"`
-	Bytes            int64    `json:"bytes"`
-	Type             string   `json:"type"`
-	Etag             string   `json:"etag"`
-	Placeholder      bool     `json:"placeholder"`
-	URL              string   `json:"url"`
-	SecureURL        string   `json:"secure_url"`
-	AccessMode       string   `json:"access_mode"`
-	OriginalFilename string   `json:"original_filename"`
+	PublicId         string          `json:"public_id"`
+	Version          int64           `json:"version"`
+	Signature        string          `json:"signature"`
+	Width            int64           `json:"width"`
+	Height           int64           `json:"height"`
+	Format           string          `json:"format"`
+	ResourceType     string          `json:"resource_type"`
+	CreatedAt        string          `json:"created_at"`
+	Tags             []string        `json:"tags"`
+	Bytes            int64           `json:"bytes"`
+	Type             string          `json:"type"`
+	Etag             string          `json:"etag"`
+	Placeholder      bool            `json:"placeholder"`
+	URL              string          `json:"url"`
+	SecureURL        string          `json:"secure_url"`
+	AccessMode       string          `json:"access_mode"`
+	OriginalFilename string          `json:"original_filename"`
+	Colors           [][]interface{} `json:"colors"`
 }
 
 // UploadImage handle signed uploading image to Cloudinary
@@ -136,7 +137,7 @@ func (us *UploadService) uploadFromURL(ctx context.Context, u, fileURL string, o
 	}
 
 	if !opts.isUnsignedUpload {
-		timestamp := strconv.Itoa(int(time.Now().UTC().Unix()))
+		timestamp := fmt.Sprintf("%d", time.Now().UTC().Unix())
 		opts.Timestamp = &timestamp
 
 		ak, err := writer.CreateFormField("api_key")
@@ -193,7 +194,7 @@ func (us *UploadService) handleUploadFromLocalPath(ctx context.Context, u, fileP
 	}
 
 	if !opts.isUnsignedUpload {
-		timestamp := strconv.Itoa(int(time.Now().UTC().Unix()))
+		timestamp := fmt.Sprintf("%d", time.Now().UTC().Unix())
 		opts.Timestamp = &timestamp
 
 		ak, err := writer.CreateFormField("api_key")
@@ -245,18 +246,6 @@ func (us *UploadService) uploadFromGoogleStorage(ctx context.Context, url string
 }
 
 func (us *UploadService) buildParamsFromOptions(opts *Options, writer *multipart.Writer) error {
-	if !opts.isUnsignedUpload {
-		// Write timestamp
-		timestamp := opts.GetTimestamp()
-		ts, err := writer.CreateFormField("timestamp")
-		if err != nil {
-			return err
-		}
-		_, err = ts.Write([]byte(timestamp))
-		if err != nil {
-			return err
-		}
-	}
 	var optMap map[string]interface{}
 	optByte, _ := json.Marshal(opts)
 	err := json.Unmarshal(optByte, &optMap)
@@ -267,8 +256,20 @@ func (us *UploadService) buildParamsFromOptions(opts *Options, writer *multipart
 	hash := sha1.New()
 	params := make([]string, 0)
 
-	for field, val := range optMap {
-		valStr := fmt.Sprintf("%v", val)
+	keys := make([]string, len(optMap))
+	ki := 0
+
+	for field := range optMap {
+		keys[ki] = field
+		ki++
+	}
+
+	sort.Strings(keys)
+
+	for i := range keys {
+		field := keys[i]
+
+		valStr := fmt.Sprintf("%v", optMap[field])
 		err := writer.WriteField(field, valStr)
 		if err != nil {
 			return err
