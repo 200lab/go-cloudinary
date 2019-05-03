@@ -91,7 +91,9 @@ func WithPublicId(id string) SetOpts {
 
 func WithFolder(folder string) SetOpts {
 	return func(o *Options) {
-		o.Folder = &folder
+		if folder != "" {
+			o.Folder = &folder
+		}
 	}
 }
 
